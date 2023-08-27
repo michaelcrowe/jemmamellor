@@ -17,6 +17,7 @@ import {
   timestamp,
   select,
   checkbox,
+  image,
 } from '@keystone-6/core/fields';
 
 // the document field is a more complicated field, so it has it's own package
@@ -52,7 +53,7 @@ export const lists: Lists = {
 
       // we can use this field to see what Posts this User has authored
       //   more on that in the Post list below
-      posts: relationship({ ref: 'Post.author', many: true }),
+      // posts: relationship({ ref: 'Post.author', many: true }),
 
       createdAt: timestamp({
         // this sets the timestamp to Date.now() when the user is first created
@@ -61,7 +62,18 @@ export const lists: Lists = {
     },
   }),
 
-  Post: list({
+  Image: list({
+    access: allowAll,
+    fields: {
+      image: image({ storage: 'local_images' }),
+      // this can be helpful to find out all the Posts associated with a Tag
+      projects: relationship({ ref: 'Project.images', many: true, ui: {
+        hideCreate: true
+      } }),
+    },
+  }),
+
+  Project: list({
     // WARNING
     //   for this starter project, anyone can create, query, update and delete anything
     //   if you want to prevent random people on the internet from accessing your data,
@@ -71,7 +83,6 @@ export const lists: Lists = {
     // this is the fields for our Post list
     fields: {
       title: text({ validation: { isRequired: true } }),
-      ush: checkbox({ defaultValue: true }),
 
       // the document field can be used for making rich editable content
       //   you can find out more at https://keystonejs.com/docs/guides/document-fields
@@ -88,29 +99,39 @@ export const lists: Lists = {
         dividers: true,
       }),
 
-      // with this field, you can set a User as the author for a Post
-      author: relationship({
-        // we could have used 'User', but then the relationship would only be 1-way
-        ref: 'User.posts',
+      images: relationship({
+        // we could have used 'Tag', but then the relationship would only be 1-way
+        ref: 'Image.projects',
 
-        // this is some customisations for changing how this will look in the AdminUI
-        ui: {
-          displayMode: 'cards',
-          cardFields: ['name', 'email'],
-          inlineEdit: { fields: ['name', 'email'] },
-          linkToItem: true,
-          inlineConnect: true,
-        },
+        // a Post can have many Tags, not just one
+        many: true,
 
-        // a Post can only have one author
-        //   this is the default, but we show it here for verbosity
-        many: false,
       }),
+
+
+      // with this field, you can set a User as the author for a Post
+      // author: relationship({
+      //   // we could have used 'User', but then the relationship would only be 1-way
+      //   ref: 'User.posts',
+
+      //   // this is some customisations for changing how this will look in the AdminUI
+      //   ui: {
+      //     displayMode: 'cards',
+      //     cardFields: ['name', 'email'],
+      //     inlineEdit: { fields: ['name', 'email'] },
+      //     linkToItem: true,
+      //     inlineConnect: true,
+      //   },
+
+      //   // a Post can only have one author
+      //   //   this is the default, but we show it here for verbosity
+      //   many: false,
+      // }),
 
       // with this field, you can add some Tags to Posts
       tags: relationship({
         // we could have used 'Tag', but then the relationship would only be 1-way
-        ref: 'Tag.posts',
+        ref: 'Tag.projects',
 
         // a Post can have many Tags, not just one
         many: true,
@@ -145,7 +166,7 @@ export const lists: Lists = {
     fields: {
       name: text(),
       // this can be helpful to find out all the Posts associated with a Tag
-      posts: relationship({ ref: 'Post.tags', many: true }),
+      projects: relationship({ ref: 'Project.tags', many: true }),
     },
   }),
 };

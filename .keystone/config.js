@@ -51,14 +51,24 @@ var lists = {
       password: (0, import_fields.password)({ validation: { isRequired: true } }),
       // we can use this field to see what Posts this User has authored
       //   more on that in the Post list below
-      posts: (0, import_fields.relationship)({ ref: "Post.author", many: true }),
+      // posts: relationship({ ref: 'Post.author', many: true }),
       createdAt: (0, import_fields.timestamp)({
         // this sets the timestamp to Date.now() when the user is first created
         defaultValue: { kind: "now" }
       })
     }
   }),
-  Post: (0, import_core.list)({
+  Image: (0, import_core.list)({
+    access: import_access.allowAll,
+    fields: {
+      image: (0, import_fields.image)({ storage: "local_images" }),
+      // this can be helpful to find out all the Posts associated with a Tag
+      projects: (0, import_fields.relationship)({ ref: "Project.images", many: true, ui: {
+        hideCreate: true
+      } })
+    }
+  }),
+  Project: (0, import_core.list)({
     // WARNING
     //   for this starter project, anyone can create, query, update and delete anything
     //   if you want to prevent random people on the internet from accessing your data,
@@ -67,7 +77,6 @@ var lists = {
     // this is the fields for our Post list
     fields: {
       title: (0, import_fields.text)({ validation: { isRequired: true } }),
-      ush: (0, import_fields.checkbox)({ defaultValue: true }),
       // the document field can be used for making rich editable content
       //   you can find out more at https://keystonejs.com/docs/guides/document-fields
       content: (0, import_fields_document.document)({
@@ -82,26 +91,32 @@ var lists = {
         links: true,
         dividers: true
       }),
-      // with this field, you can set a User as the author for a Post
-      author: (0, import_fields.relationship)({
-        // we could have used 'User', but then the relationship would only be 1-way
-        ref: "User.posts",
-        // this is some customisations for changing how this will look in the AdminUI
-        ui: {
-          displayMode: "cards",
-          cardFields: ["name", "email"],
-          inlineEdit: { fields: ["name", "email"] },
-          linkToItem: true,
-          inlineConnect: true
-        },
-        // a Post can only have one author
-        //   this is the default, but we show it here for verbosity
-        many: false
+      images: (0, import_fields.relationship)({
+        // we could have used 'Tag', but then the relationship would only be 1-way
+        ref: "Image.projects",
+        // a Post can have many Tags, not just one
+        many: true
       }),
+      // with this field, you can set a User as the author for a Post
+      // author: relationship({
+      //   // we could have used 'User', but then the relationship would only be 1-way
+      //   ref: 'User.posts',
+      //   // this is some customisations for changing how this will look in the AdminUI
+      //   ui: {
+      //     displayMode: 'cards',
+      //     cardFields: ['name', 'email'],
+      //     inlineEdit: { fields: ['name', 'email'] },
+      //     linkToItem: true,
+      //     inlineConnect: true,
+      //   },
+      //   // a Post can only have one author
+      //   //   this is the default, but we show it here for verbosity
+      //   many: false,
+      // }),
       // with this field, you can add some Tags to Posts
       tags: (0, import_fields.relationship)({
         // we could have used 'Tag', but then the relationship would only be 1-way
-        ref: "Tag.posts",
+        ref: "Tag.projects",
         // a Post can have many Tags, not just one
         many: true,
         // this is some customisations for changing how this will look in the AdminUI
@@ -131,7 +146,7 @@ var lists = {
     fields: {
       name: (0, import_fields.text)(),
       // this can be helpful to find out all the Posts associated with a Tag
-      posts: (0, import_fields.relationship)({ ref: "Post.tags", many: true })
+      projects: (0, import_fields.relationship)({ ref: "Project.tags", many: true })
     }
   })
 };
@@ -180,6 +195,17 @@ var keystone_default = withAuth(
       url: "file:./keystone.db"
     },
     lists,
-    session
+    session,
+    storage: {
+      local_images: {
+        kind: "local",
+        type: "image",
+        generateUrl: (path) => `http://localhost:3000/images${path}`,
+        serverRoute: {
+          path: "/images"
+        },
+        storagePath: "public/images"
+      }
+    }
   })
 );

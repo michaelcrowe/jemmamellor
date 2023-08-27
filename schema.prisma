@@ -16,24 +16,29 @@ model User {
   name      String    @default("")
   email     String    @unique @default("")
   password  String
-  posts     Post[]    @relation("Post_author")
   createdAt DateTime? @default(now())
 }
 
-model Post {
-  id       String  @id @default(cuid())
-  title    String  @default("")
-  ush      Boolean @default(true)
-  content  String  @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-  author   User?   @relation("Post_author", fields: [authorId], references: [id])
-  authorId String? @map("author")
-  tags     Tag[]   @relation("Post_tags")
+model Image {
+  id              String    @id @default(cuid())
+  image_filesize  Int?
+  image_extension String?
+  image_width     Int?
+  image_height    Int?
+  image_id        String?
+  projects        Project[] @relation("Image_projects")
+}
 
-  @@index([authorId])
+model Project {
+  id      String  @id @default(cuid())
+  title   String  @default("")
+  content String  @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  images  Image[] @relation("Image_projects")
+  tags    Tag[]   @relation("Project_tags")
 }
 
 model Tag {
-  id    String @id @default(cuid())
-  name  String @default("")
-  posts Post[] @relation("Post_tags")
+  id       String    @id @default(cuid())
+  name     String    @default("")
+  projects Project[] @relation("Project_tags")
 }
